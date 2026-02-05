@@ -8,51 +8,69 @@
 </head>
 <body>
   <main class="container">
-    <h1>Image → ASCII / Paint Converter</h1>
+    <h1>ImageStyler</h1>
 
     <div class="controls">
-      <div id="drop-area" class="drop-area">
-        <p>Drag & drop an image/GIF here, or</p>
-        <label class="btn">
-          <input id="fileElem" type="file" accept="image/*" />
-          Choose file
-        </label>
-      </div>
-
-      <div class="options">
-        <label>Mode
-          <select id="modeSelect">
-            <option value="ascii">ASCII</option>
-            <option value="paint">Paint (pixelated)</option>
-          </select>
-        </label>
-
-        <label id="asciiSettings">Font size
-          <input id="fontSize" type="range" min="6" max="18" value="10">
-        </label>
-
-        <div id="paintSettings">
-          <label>Paint style
-            <select id="paintStyle">
-              <option value="pixel">Pixelated</option>
-              <option value="brush">Brush strokes</option>
-              <option value="gallery">Gallery canvas</option>
-            </select>
-          </label>
-          <label id="paintSizeLabel">Brush / pixel size
-            <input id="pixelSize" type="range" min="2" max="40" value="8">
+      <aside class="left-panel">
+        <div id="drop-area" class="drop-area">
+          <p>Drag & drop an image/GIF here, or</p>
+          <label class="btn">
+            <input id="fileElem" type="file" accept="image/*" />
+            Choose file
           </label>
         </div>
 
-        <button id="convertBtn" class="btn primary">Convert</button>
-        <button id="downloadBtn" class="btn" disabled>Download</button>
-        <button id="clearSavedBtn" class="btn">Clear Saved</button>
-      </div>
-    </div>
+        <div class="options">
+          <label>Mode
+            <select id="modeSelect">
+              <option value="ascii">ASCII</option>
+              <option value="paint">Paint</option>
+            </select>
+          </label>
 
-    <section class="preview">
-      <canvas id="outputCanvas"></canvas>
-    </section>
+          <div id="asciiSettings" class="control-block">
+            <label>Font size
+              <input id="fontSize" type="range" min="6" max="18" value="10">
+            </label>
+          </div>
+
+          <div id="paintSettings" class="control-block">
+            <div class="paint-mix">
+              <strong>Paint Styles (mix):</strong>
+              <label><input type="checkbox" id="stylePixel" checked> Pixel</label>
+              <label><input type="checkbox" id="styleBrush" checked> Brush</label>
+              <label><input type="checkbox" id="styleGallery"> Gallery</label>
+              <label><input type="checkbox" id="styleImpression"> Impression</label>
+              <label><input type="checkbox" id="styleWatercolor"> Watercolor</label>
+            </div>
+
+            <label id="paintSizeLabel">Brush / pixel size
+              <input id="pixelSize" type="range" min="2" max="40" value="8">
+            </label>
+
+            <label>Brush strength
+              <input id="brushStrength" type="range" min="0" max="100" value="70">
+            </label>
+
+            <label>Texture strength
+              <input id="textureStrength" type="range" min="0" max="100" value="40">
+            </label>
+          </div>
+
+          <div class="action-row">
+            <button id="convertBtn" class="btn primary">Convert</button>
+            <button id="downloadBtn" class="btn" disabled>Download</button>
+            <button id="clearSavedBtn" class="btn">Clear Saved</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="preview">
+        <div class="preview-shell">
+          <canvas id="outputCanvas" width="800" height="600"></canvas>
+        </div>
+      </section>
+    </div>
 
     <p class="notes">Tip: For GIFs, the first frame is used. Keep images reasonably sized for faster conversion.</p>
   </main>
