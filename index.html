@@ -31,12 +31,22 @@
           <input id="fontSize" type="range" min="6" max="18" value="10">
         </label>
 
-        <label id="paintSettings">Pixel size
-          <input id="pixelSize" type="range" min="2" max="40" value="8">
-        </label>
+        <div id="paintSettings">
+          <label>Paint style
+            <select id="paintStyle">
+              <option value="pixel">Pixelated</option>
+              <option value="brush">Brush strokes</option>
+              <option value="gallery">Gallery canvas</option>
+            </select>
+          </label>
+          <label id="paintSizeLabel">Brush / pixel size
+            <input id="pixelSize" type="range" min="2" max="40" value="8">
+          </label>
+        </div>
 
         <button id="convertBtn" class="btn primary">Convert</button>
         <button id="downloadBtn" class="btn" disabled>Download</button>
+        <button id="clearSavedBtn" class="btn">Clear Saved</button>
       </div>
     </div>
 

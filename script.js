@@ -35,13 +35,11 @@ modeSelect.addEventListener('change', ()=>{
   paintSettings.style.display = mode==='paint' ? 'inline-flex' : 'none';
 });
 
-function handleFile(file){
-  const url = URL.createObjectURL(file);
+function loadFromDataURL(dataURL){
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = ()=>{
     loadedImage = img;
-    // fit canvas to image preview width but don't upscale too large
     const maxW = 900;
     const scale = Math.min(1, maxW / img.width);
     outputCanvas.width = Math.round(img.width * scale);
@@ -51,39 +49,114 @@ function handleFile(file){
     downloadBtn.disabled = false;
   };
   img.onerror = ()=>{ alert('Unable to load image.'); };
-  img.src = url;
+  img.src = dataURL;
+}
+
+function handleFile(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const dataURL = reader.result;
+    try{ localStorage.setItem('savedImage', dataURL); }catch(e){ console.warn('Could not save image to localStorage', e); }
+    loadFromDataURL(dataURL);
+  };
+  reader.onerror = ()=>{ alert('Failed to read file.'); };
+  reader.readAsDataURL(file);
 }
 
 function convert(){
   if(!loadedImage){ alert('Please upload an image first.'); return; }
   const mode = modeSelect.value;
   if(mode==='ascii') convertToASCII(loadedImage, Number(fontSizeInput.value));
-  else convertToPaint(loadedImage, Number(pixelSizeInput.value));
+  else {
+    const style = document.getElementById('paintStyle')?.value || 'pixel';
+    convertToPaint(loadedImage, Number(pixelSizeInput.value), style);
+  }
 }
 
-function convertToPaint(img, pixelSize){
-  // Draw small version then scale up with nearest-neighbor effect
+function convertToPaint(img, pixelSize, style){
   const smallW = Math.max( Math.floor(outputCanvas.width / pixelSize), 1 );
   const smallH = Math.max( Math.floor(outputCanvas.height / pixelSize), 1 );
-
   const temp = document.createElement('canvas');
   temp.width = smallW; temp.height = smallH;
   const tctx = temp.getContext('2d');
-  // draw image to small canvas
   tctx.drawImage(img, 0, 0, smallW, smallH);
 
-  // now draw pixel blocks on outputCanvas
+  // Prepare output canvas
   outputCanvas.width = smallW * pixelSize;
   outputCanvas.height = smallH * pixelSize;
   ctx.imageSmoothingEnabled = false;
+
   const data = tctx.getImageData(0,0,smallW,smallH).data;
+
+  if(style === 'pixel'){
+    for(let y=0;y<smallH;y++){
+      for(let x=0;x<smallW;x++){
+        const i = (y*smallW + x)*4;
+        const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+        ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
+        ctx.fillRect(x*pixelSize, y*pixelSize, pixelSize, pixelSize);
+      }
+    }
+    return;
+  }
+
+  // For brush and gallery styles, draw with softer strokes
+  ctx.clearRect(0,0,outputCanvas.width, outputCanvas.height);
   for(let y=0;y<smallH;y++){
     for(let x=0;x<smallW;x++){
       const i = (y*smallW + x)*4;
-      const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
-      ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
-      ctx.fillRect(x*pixelSize, y*pixelSize, pixelSize, pixelSize);
+      const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3] / 255;
+      const cx = x * pixelSize + pixelSize/2;
+      const cy = y * pixelSize + pixelSize/2;
+      ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+
+      if(style === 'brush'){
+        // multiple overlapping circles to simulate brush texture
+        const strokes = Math.max(1, Math.round(pixelSize/3));
+        for(let s=0;s<strokes;s++){
+          const jitterX = (Math.random()-0.5) * pixelSize * 0.4;
+          const jitterY = (Math.random()-0.5) * pixelSize * 0.4;
+          const radius = pixelSize * (0.45 + (Math.random()-0.5)*0.15);
+          ctx.beginPath();
+          ctx.globalAlpha = 0.9 * a;
+          ctx.shadowColor = `rgba(${r},${g},${b},${a*0.5})`;
+          ctx.shadowBlur = 2;
+          ctx.arc(cx + jitterX, cy + jitterY, radius, 0, Math.PI*2);
+          ctx.fill();
+        }
+        ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+      }
+
+      if(style === 'gallery'){
+        // larger, softer strokes and an overall subtle texture
+        const radius = pixelSize * (0.6 + Math.random()*0.6);
+        ctx.beginPath();
+        ctx.globalAlpha = 0.9 * a;
+        ctx.filter = 'blur(0.5px)';
+        ctx.arc(cx + (Math.random()-0.5)*pixelSize*0.2, cy + (Math.random()-0.5)*pixelSize*0.2, radius, 0, Math.PI*2);
+        ctx.fill();
+        ctx.filter = 'none'; ctx.globalAlpha = 1;
+      }
     }
+  }
+
+  // gallery: overlay a subtle paper/noise texture
+  if(style === 'gallery'){
+    const tex = document.createElement('canvas');
+    tex.width = outputCanvas.width; tex.height = outputCanvas.height;
+    const t = tex.getContext('2d');
+    const imgd = t.createImageData(tex.width, tex.height);
+    for(let i=0;i<imgd.data.length;i+=4){
+      const v = 230 + Math.floor(Math.random()*25); // light noise
+      imgd.data[i]=imgd.data[i+1]=imgd.data[i+2]=v;
+      imgd.data[i+3]=12; // very low alpha
+    }
+    t.putImageData(imgd,0,0);
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = 0.7;
+    ctx.drawImage(tex,0,0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
   }
 }
 
@@ -133,3 +206,20 @@ downloadBtn.addEventListener('click', ()=>{
 
 // Initialize UI state
 modeSelect.dispatchEvent(new Event('change'));
+
+// Wire clear saved image button and restore on load
+const clearSavedBtn = document.getElementById('clearSavedBtn');
+if(clearSavedBtn){
+  clearSavedBtn.addEventListener('click', ()=>{
+    localStorage.removeItem('savedImage');
+    loadedImage = null;
+    ctx.clearRect(0,0,outputCanvas.width, outputCanvas.height);
+    downloadBtn.disabled = true;
+  });
+}
+
+// Restore saved image (if any)
+try{
+  const saved = localStorage.getItem('savedImage');
+  if(saved) loadFromDataURL(saved);
+}catch(e){ console.warn('Could not access localStorage', e); }
