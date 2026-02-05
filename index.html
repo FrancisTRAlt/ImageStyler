@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image → ASCII / Paint Converter</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Image → ASCII / Paint Converter</h1>
+
+    <div class="controls">
+      <div id="drop-area" class="drop-area">
+        <p>Drag & drop an image/GIF here, or</p>
+        <label class="btn">
+          <input id="fileElem" type="file" accept="image/*" />
+          Choose file
+        </label>
+      </div>
+
+      <div class="options">
+        <label>Mode
+          <select id="modeSelect">
+            <option value="ascii">ASCII</option>
+            <option value="paint">Paint (pixelated)</option>
+          </select>
+        </label>
+
+        <label id="asciiSettings">Font size
+          <input id="fontSize" type="range" min="6" max="18" value="10">
+        </label>
+
+        <label id="paintSettings">Pixel size
+          <input id="pixelSize" type="range" min="2" max="40" value="8">
+        </label>
+
+        <button id="convertBtn" class="btn primary">Convert</button>
+        <button id="downloadBtn" class="btn" disabled>Download</button>
+      </div>
+    </div>
+
+    <section class="preview">
+      <canvas id="outputCanvas"></canvas>
+    </section>
+
+    <p class="notes">Tip: For GIFs, the first frame is used. Keep images reasonably sized for faster conversion.</p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
