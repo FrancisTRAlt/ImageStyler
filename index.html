@@ -3,40 +3,47 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Image → ASCII / Paint Converter</title>
+  <title>ImageStyler</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- GIF.js library for animated GIF generation -->
+  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 </head>
 <body>
   <main class="container">
     <h1>ImageStyler</h1>
-
+    
     <div class="controls">
       <aside class="left-panel">
+        <!-- File Upload Section -->
         <div id="drop-area" class="drop-area">
-          <p>Drag & drop an image/GIF here, or</p>
-          <label class="btn">
+          <p>📁 Drop image/GIF here</p>
+          <label class="btn-upload">
             <input id="fileElem" type="file" accept="image/*" />
-            Choose file
+            Choose File
           </label>
         </div>
 
+        <!-- Settings Section -->
         <div class="options">
-          <label>Mode
-            <select id="modeSelect">
-              <option value="ascii">ASCII</option>
-              <option value="paint">Paint</option>
+          <div class="setting-group">
+            <label for="modeSelect" class="label-title">Mode</label>
+            <select id="modeSelect" class="select-input">
+              <option value="ascii">ASCII Art</option>
+              <option value="paint">Paint Style</option>
             </select>
-          </label>
-
-          <div id="asciiSettings" class="control-block">
-            <label>Font size
-              <input id="fontSize" type="range" min="6" max="18" value="10">
-            </label>
           </div>
 
+          <!-- ASCII Settings -->
+          <div id="asciiSettings" class="control-block">
+            <label for="fontSize" class="label-title">Font Size</label>
+            <input id="fontSize" type="range" min="6" max="18" value="10" class="range-input">
+            <span class="range-value" id="fontSizeValue">10</span>
+          </div>
+
+          <!-- Paint Settings -->
           <div id="paintSettings" class="control-block">
+            <label class="label-title">Paint Styles</label>
             <div class="paint-mix">
-              <strong>Paint Styles (mix):</strong>
               <label><input type="checkbox" id="stylePixel" checked> Pixel</label>
               <label><input type="checkbox" id="styleBrush" checked> Brush</label>
               <label><input type="checkbox" id="styleGallery"> Gallery</label>
@@ -44,27 +51,27 @@
               <label><input type="checkbox" id="styleWatercolor"> Watercolor</label>
             </div>
 
-            <label id="paintSizeLabel">Brush / pixel size
-              <input id="pixelSize" type="range" min="2" max="40" value="8">
-            </label>
+            <label for="pixelSize" class="label-title">Brush Size</label>
+            <input id="pixelSize" type="range" min="2" max="40" value="8" class="range-input">
+            <span class="range-value" id="pixelSizeValue">8</span>
 
-            <label>Brush strength
-              <input id="brushStrength" type="range" min="0" max="100" value="70">
-            </label>
+            <label for="brushStrength" class="label-title">Strength</label>
+            <input id="brushStrength" type="range" min="0" max="100" value="70" class="range-input">
 
-            <label>Texture strength
-              <input id="textureStrength" type="range" min="0" max="100" value="40">
-            </label>
+            <label for="textureStrength" class="label-title">Texture</label>
+            <input id="textureStrength" type="range" min="0" max="100" value="40" class="range-input">
           </div>
 
+          <!-- Action Buttons -->
           <div class="action-row">
             <button id="convertBtn" class="btn primary">Convert</button>
             <button id="downloadBtn" class="btn" disabled>Download</button>
-            <button id="clearSavedBtn" class="btn">Clear Saved</button>
+            <button id="resetBtn" class="btn">Reset</button>
           </div>
         </div>
       </aside>
 
+      <!-- Preview Section -->
       <section class="preview">
         <div class="preview-shell">
           <canvas id="outputCanvas" width="800" height="600"></canvas>
@@ -72,7 +79,7 @@
       </section>
     </div>
 
-    <p class="notes">Tip: For GIFs, the first frame is used. Keep images reasonably sized for faster conversion.</p>
+    <p class="notes">✨ Drag images & GIFs • Animated conversions • Auto-download • Works offline</p>
   </main>
 
   <script src="script.js"></script>
