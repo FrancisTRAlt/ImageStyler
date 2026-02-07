@@ -5,81 +5,103 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ImageStyler</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- GIF.js library for animated GIF generation -->
-  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 </head>
 <body>
   <main class="container">
-    <h1>ImageStyler</h1>
-    
-    <div class="controls">
-      <aside class="left-panel">
+    <!-- Header Section -->
+    <header class="header">
+      <h1>✨ ImageStyler</h1>
+      <div class="header-controls">
+        <div class="mode-selector">
+          <label for="modeSelect" class="label-title">Mode</label>
+          <select id="modeSelect" class="select-input">
+            <option value="ascii">📝 ASCII Art</option>
+            <option value="paint">🖌️ Paint Style</option>
+          </select>
+        </div>
+        <div class="header-buttons">
+          <button id="convertBtn" class="btn primary">✨ Convert</button>
+          <button id="downloadBtn" class="btn" disabled>⬇️ Download</button>
+          <button id="undoBtn" class="btn" disabled>↶ Undo</button>
+          <button id="resetBtn" class="btn">🔄 Reset</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Preview Section (Center) -->
+      <section class="preview">
+        <div class="preview-shell">
+          <canvas id="outputCanvas" width="800" height="600"></canvas>
+        </div>
+      </section>
+
+      <!-- Settings/Controls Panel (Sidebar) -->
+      <aside class="sidebar">
         <!-- File Upload Section -->
         <div id="drop-area" class="drop-area">
-          <p>📁 Drop image/GIF here</p>
+          <p>📁 Drop image here</p>
           <label class="btn-upload">
             <input id="fileElem" type="file" accept="image/*" />
             Choose File
           </label>
         </div>
 
-        <!-- Settings Section -->
-        <div class="options">
-          <div class="setting-group">
-            <label for="modeSelect" class="label-title">Mode</label>
-            <select id="modeSelect" class="select-input">
-              <option value="ascii">ASCII Art</option>
-              <option value="paint">Paint Style</option>
-            </select>
+        <!-- Settings Tabs -->
+        <div class="settings-tabs">
+          <div class="tab-buttons">
+            <button class="tab-btn active" data-tab="ascii">📝 ASCII</button>
+            <button class="tab-btn" data-tab="paint">🎨 Paint</button>
           </div>
 
-          <!-- ASCII Settings -->
-          <div id="asciiSettings" class="control-block">
-            <label for="fontSize" class="label-title">Font Size</label>
-            <input id="fontSize" type="range" min="6" max="18" value="10" class="range-input">
-            <span class="range-value" id="fontSizeValue">10</span>
-          </div>
+          <!-- ASCII Settings Tab -->
+          <div id="ascii-tab" class="tab-content active">
+            <div class="control-block">
+              <label for="fontSize" class="label-title">Font Size</label>
+              <input id="fontSize" type="range" min="6" max="48" value="12" class="range-input">
+              <span class="range-value" id="fontSizeValue">12</span>
 
-          <!-- Paint Settings -->
-          <div id="paintSettings" class="control-block">
-            <label class="label-title">Paint Styles</label>
-            <div class="paint-mix">
-              <label><input type="checkbox" id="stylePixel" checked> Pixel</label>
-              <label><input type="checkbox" id="styleBrush" checked> Brush</label>
-              <label><input type="checkbox" id="styleGallery"> Gallery</label>
-              <label><input type="checkbox" id="styleImpression"> Impression</label>
-              <label><input type="checkbox" id="styleWatercolor"> Watercolor</label>
+              <label for="asciiCols" class="label-title">Width (chars)</label>
+              <input id="asciiCols" type="number" min="20" max="400" value="120" class="number-input">
+
+              <label class="label-title">ASCII Output</label>
+              <textarea id="asciiText" class="ascii-text" rows="8" placeholder="ASCII art output..." readonly></textarea>
+              <div class="ascii-actions">
+                <button id="copyAsciiBtn" class="btn">📋 Copy</button>
+                <button id="clearAsciiBtn" class="btn">🗑️ Clear</button>
+              </div>
             </div>
-
-            <label for="pixelSize" class="label-title">Brush Size</label>
-            <input id="pixelSize" type="range" min="2" max="40" value="8" class="range-input">
-            <span class="range-value" id="pixelSizeValue">8</span>
-
-            <label for="brushStrength" class="label-title">Strength</label>
-            <input id="brushStrength" type="range" min="0" max="100" value="70" class="range-input">
-
-            <label for="textureStrength" class="label-title">Texture</label>
-            <input id="textureStrength" type="range" min="0" max="100" value="40" class="range-input">
           </div>
 
-          <!-- Action Buttons -->
-          <div class="action-row">
-            <button id="convertBtn" class="btn primary">Convert</button>
-            <button id="downloadBtn" class="btn" disabled>Download</button>
-            <button id="resetBtn" class="btn">Reset</button>
+          <!-- Paint Settings Tab -->
+          <div id="paint-tab" class="tab-content">
+            <div class="control-block">
+              <label class="label-title">Effects</label>
+              <div class="paint-mix">
+                <label><input type="checkbox" id="stylePixel" checked> 🔲 Pixel</label>
+                <label><input type="checkbox" id="styleBrush" checked> 🖌️ Brush</label>
+                <label><input type="checkbox" id="styleGallery"> 🏛️ Gallery</label>
+                <label><input type="checkbox" id="styleImpression"> 🌅 Impression</label>
+                <label><input type="checkbox" id="styleWatercolor"> 💧 Watercolor</label>
+              </div>
+
+              <label for="pixelSize" class="label-title">Size</label>
+              <input id="pixelSize" type="range" min="2" max="40" value="8" class="range-input">
+              <span class="range-value" id="pixelSizeValue">8</span>
+
+              <label for="brushStrength" class="label-title">Strength</label>
+              <input id="brushStrength" type="range" min="0" max="100" value="70" class="range-input">
+
+              <label for="textureStrength" class="label-title">Texture</label>
+              <input id="textureStrength" type="range" min="0" max="100" value="40" class="range-input">
+            </div>
           </div>
         </div>
       </aside>
-
-      <!-- Preview Section -->
-      <section class="preview">
-        <div class="preview-shell">
-          <canvas id="outputCanvas" width="800" height="600"></canvas>
-        </div>
-      </section>
     </div>
 
-    <p class="notes">✨ Drag images & GIFs • Animated conversions • Auto-download • Works offline</p>
+    <footer class="notes">✨ Drag images • Auto-download • Works offline</footer>
   </main>
 
   <script src="script.js"></script>
