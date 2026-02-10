@@ -32,11 +32,38 @@ const downloadBtn = document.getElementById('downloadBtn');
 // Preview Canvas (800x600 display area with letterboxing)
 const outputCanvas = document.getElementById('outputCanvas');
 const ctx = outputCanvas.getContext('2d');
-const PREVIEW_W = outputCanvas.width || 800;
-const PREVIEW_H = outputCanvas.height || 600;
+
+// Make the canvas DPI-aware and responsive. We'll resize the canvas
+// internal pixel buffer to match its CSS size * devicePixelRatio and
+// set the drawing transform so coordinates map to CSS pixels.
+function resizeOutputCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = outputCanvas.getBoundingClientRect();
+  const cssW = Math.max(200, Math.round(rect.width));
+  const cssH = Math.max(150, Math.round(rect.height));
+
+  // Set internal pixel size
+  outputCanvas.width = Math.max(1, Math.round(cssW * dpr));
+  outputCanvas.height = Math.max(1, Math.round(cssH * dpr));
+
+  // Ensure CSS size is explicit to avoid layout jitter
+  outputCanvas.style.width = cssW + 'px';
+  outputCanvas.style.height = cssH + 'px';
+
+  // Map drawing coordinates to CSS pixels
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+// Resize on load and on window resize to keep UI sharp and consistent
+window.addEventListener('resize', () => {
+  try { resizeOutputCanvas(); renderPreviewFromExport(); } catch (e) { /* ignore */ }
+});
 
 // Initial placeholder in preview
 try {
+  resizeOutputCanvas();
+  const PREVIEW_W = outputCanvas.clientWidth || 800;
+  const PREVIEW_H = outputCanvas.clientHeight || 600;
   ctx.fillStyle = '#f0f0f0';
   ctx.fillRect(0, 0, PREVIEW_W, PREVIEW_H);
   ctx.fillStyle = '#999';
@@ -196,8 +223,13 @@ if (undoBtn) undoBtn.addEventListener('click', () => {
 function renderPreviewFromExport() {
   const startTime = performance.now();
   console.log('renderPreviewFromExport called, exportCanvas:', exportCanvas.width, 'x', exportCanvas.height);
-  
+
   try {
+    // Ensure output canvas internal size matches its CSS size and dpr
+    resizeOutputCanvas();
+    const PREVIEW_W = outputCanvas.clientWidth || 800;
+    const PREVIEW_H = outputCanvas.clientHeight || 600;
+
     ctx.clearRect(0, 0, PREVIEW_W, PREVIEW_H);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, PREVIEW_W, PREVIEW_H);
@@ -224,7 +256,7 @@ function renderPreviewFromExport() {
 
     console.log('Drawing preview at', dx, dy, 'size', dw, 'x', dh);
     ctx.drawImage(exportCanvas, 0, 0, exportCanvas.width, exportCanvas.height, dx, dy, dw, dh);
-    
+
     const endTime = performance.now();
     console.log('renderPreviewFromExport completed in', (endTime - startTime).toFixed(2), 'ms');
   } catch (error) {
@@ -408,23 +440,27 @@ function checkEasterEgg() {
  * @returns {void}
  */
 async function triggerEasterEgg() {
-  // Create a surprise display
+  // Create a surprise display sized to current preview
+  resizeOutputCanvas();
+  const PREVIEW_W = outputCanvas.clientWidth || 800;
+  const PREVIEW_H = outputCanvas.clientHeight || 600;
+
   ctx.clearRect(0, 0, PREVIEW_W, PREVIEW_H);
   ctx.fillStyle = '#1a1a1a';
   ctx.fillRect(0, 0, PREVIEW_W, PREVIEW_H);
-  
+
   // Draw surprise text
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 64px Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('🎉 SURPRISE! 🎉', PREVIEW_W / 2, PREVIEW_H / 2 - 80);
-  
+
   // Draw celebratory message
   ctx.fillStyle = '#00FF00';
   ctx.font = 'bold 32px Arial';
   ctx.fillText("You've unlocked a surprise!", PREVIEW_W / 2, PREVIEW_H / 2);
-  
+
   // Draw friendly message
   ctx.fillStyle = '#FF1493';
   ctx.font = '24px Arial';
