@@ -76,7 +76,7 @@ const ASCII_CHARS = '@%#*+=-:. ';
 // Application State
 let loadedImage = null; // Current loaded image element
 let originalImageData = null; // Base64 PNG of original for reset
-let asciiConversionCount = 0; // Counter for rickroll easter egg (triggers at 10)
+let asciiConversionCount = 0; // Counter for secret easter egg (triggers at 10)
 const historyStack = []; // Undo stack: stores PNG data URLs
 const MAX_HISTORY = 12; // Maximum undo states
 
@@ -388,59 +388,60 @@ function loadStaticImage(dataURL) {
 // ============================================================================
 
 /**
- * Check for rickroll easter egg - triggers on 10th ASCII conversion.
+ * Check for secret easter egg - triggers on 10th ASCII conversion.
  * Increments conversion counter and performs easter egg action.
  * @returns {void}
  */
-function checkRickrollEasterEgg() {
+function checkEasterEgg() {
   asciiConversionCount++;
   if (asciiConversionCount === 10) {
-    triggerRickroll();
+    triggerEasterEgg();
     asciiConversionCount = 0;
   }
 }
 
 /**
- * Trigger rickroll easter egg display.
- * Shows celebratory text and attempts to load rickroll image from web.
- * Plays optional audio accompaniment.
+ * Trigger surprise easter egg display.
+ * Shows celebratory text and attempts to load a neutral surprise image from web.
+ * Plays optional celebratory audio accompaniment.
  * @async
  * @returns {void}
  */
-async function triggerRickroll() {
-  // Create a more robust rickroll display
+async function triggerEasterEgg() {
+  // Create a surprise display
   ctx.clearRect(0, 0, PREVIEW_W, PREVIEW_H);
   ctx.fillStyle = '#1a1a1a';
   ctx.fillRect(0, 0, PREVIEW_W, PREVIEW_H);
   
-  // Draw rickroll text
+  // Draw surprise text
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 64px Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('🎉 RICKROLLED! 🎉', PREVIEW_W / 2, PREVIEW_H / 2 - 80);
+  ctx.fillText('🎉 SURPRISE! 🎉', PREVIEW_W / 2, PREVIEW_H / 2 - 80);
   
-  // Draw funny message
+  // Draw celebratory message
   ctx.fillStyle = '#00FF00';
   ctx.font = 'bold 32px Arial';
-  ctx.fillText("You've been Rick Roll'd!", PREVIEW_W / 2, PREVIEW_H / 2);
+  ctx.fillText("You've unlocked a surprise!", PREVIEW_W / 2, PREVIEW_H / 2);
   
-  // Draw rick astley reference
+  // Draw friendly message
   ctx.fillStyle = '#FF1493';
   ctx.font = '24px Arial';
-  ctx.fillText('Never gonna give you up...', PREVIEW_W / 2, PREVIEW_H / 2 + 80);
+  ctx.fillText('Enjoy the moment!', PREVIEW_W / 2, PREVIEW_H / 2 + 80);
   
-  // Try to load and show rickroll image
-  const rickrollUrls = [
-    'https://upload.wikimedia.org/wikipedia/en/7/73/Rick_Astley_-_Never_Gonna_Give_You_Up.png'
+  // Try to load and show a neutral surprise image
+  const surpriseImageUrls = [
+    'https://via.placeholder.com/400x300.png?text=Surprise',
+    'https://picsum.photos/400/300'
   ];
   
   // Try each URL until one works
-  for (let url of rickrollUrls) {
+  for (let url of surpriseImageUrls) {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
-      // Draw rickroll image if successfully loaded
+      // Draw image if successfully loaded
       const ratio = img.width / img.height;
       let w = PREVIEW_W * 0.6;
       let h = w / ratio;
@@ -455,21 +456,21 @@ async function triggerRickroll() {
       }
     };
     img.onerror = () => {
-      console.warn('Could not load rickroll from', url);
+      console.warn('Could not load surprise image from', url);
     };
     img.src = url;
   }
   
-  // Play rickroll sound (optional)
-  playRickrollAudio();
+  // Play celebratory sound (optional)
+  playEasterAudio();
 }
 
 /**
- * Play rickroll audio from external source.
+ * Play celebratory audio from external source.
  * Handles audio load failures gracefully.
  * @returns {void}
  */
-function playRickrollAudio() {
+function playEasterAudio() {
   try {
     const audio = new Audio('https://cdn.pixabay.com/download/audio/2021/08/27/audio_a2c5d8b34e.mp3');
     audio.volume = 0.3;
@@ -506,7 +507,7 @@ function convert() {
   }
 
   if (mode === 'ascii') {
-    checkRickrollEasterEgg();
+    checkEasterEgg();
     convertToASCII(Number(fontSizeInput.value), Number(asciiColsInput.value));
   } else {
     const paintOptions = {
