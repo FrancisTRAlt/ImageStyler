@@ -180,7 +180,8 @@ modeSelect.addEventListener('change', () => {
 
 // Main action buttons
 convertBtn.addEventListener('click', convert);
-downloadBtn.addEventListener('click', downloadImage);
+// Show modal dialog to choose filename before downloading
+downloadBtn.addEventListener('click', showDownloadDialog);
 resetBtn.addEventListener('click', resetToOriginal);
 
 // Slider value displays
@@ -209,6 +210,79 @@ if (undoBtn) undoBtn.addEventListener('click', () => {
     if (historyStack.length === 0) undoBtn.disabled = true;
   };
   img.src = prev;
+});
+
+// ---------------------------
+// Download modal behavior
+// ---------------------------
+const downloadModal = document.getElementById('downloadModal');
+const downloadNameInput = document.getElementById('downloadName');
+const downloadNowBtn = document.getElementById('downloadNowBtn');
+const downloadCancelBtn = document.getElementById('downloadCancelBtn');
+
+function showDownloadDialog() {
+  if (!downloadModal) {
+    // fallback: immediate download
+    downloadImage();
+    return;
+  }
+  downloadNameInput.value = downloadNameInput.value || 'converted.png';
+  downloadModal.classList.remove('hidden');
+  downloadModal.setAttribute('aria-hidden', 'false');
+  // focus and select filename for quick edit
+  setTimeout(() => {
+    downloadNameInput.focus();
+    downloadNameInput.select();
+  }, 50);
+}
+
+function closeDownloadDialog() {
+  if (!downloadModal) return;
+  downloadModal.classList.add('hidden');
+  downloadModal.setAttribute('aria-hidden', 'true');
+  downloadBtn.focus();
+}
+
+function downloadImageWithName(fileName) {
+  try {
+    const url = exportCanvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || 'converted.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (e) {
+    console.error('Download failed', e);
+    // fallback to original download behavior
+    downloadImage();
+  }
+  closeDownloadDialog();
+}
+
+if (downloadNowBtn) {
+  downloadNowBtn.addEventListener('click', () => {
+    let name = (downloadNameInput && downloadNameInput.value) || 'converted.png';
+    name = name.trim() || 'converted.png';
+    if (!/\.[a-zA-Z0-9]{1,5}$/.test(name)) name += '.png';
+    downloadImageWithName(name);
+  });
+}
+
+if (downloadCancelBtn) downloadCancelBtn.addEventListener('click', closeDownloadDialog);
+
+if (downloadModal) {
+  // Close when clicking the overlay
+  downloadModal.addEventListener('click', (e) => { if (e.target === downloadModal) closeDownloadDialog(); });
+}
+
+// Keyboard support: Enter to download, Esc to cancel
+document.addEventListener('keydown', (e) => {
+  if (!downloadModal || downloadModal.classList.contains('hidden')) return;
+  if (e.key === 'Escape') closeDownloadDialog();
+  if (e.key === 'Enter' && document.activeElement === downloadNameInput) {
+    downloadNowBtn && downloadNowBtn.click();
+  }
 });
 
 // ============================================================================

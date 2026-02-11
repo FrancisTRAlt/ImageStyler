@@ -104,6 +104,20 @@
     <footer class="notes">✨ Drag images • Auto-download • Works offline</footer>
   </main>
 
+  <!-- Download Modal -->
+  <div id="downloadModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="downloadModalTitle">
+    <div class="modal-content">
+      <h2 id="downloadModalTitle">Download Image</h2>
+      <label class="modal-label">File name
+        <input id="downloadName" type="text" value="converted.png" aria-label="File name">
+      </label>
+      <div class="modal-actions">
+        <button id="downloadNowBtn" class="btn primary">Download Now</button>
+        <button id="downloadCancelBtn" class="btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
