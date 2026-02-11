@@ -313,23 +313,21 @@ function renderPreviewFromExport() {
       return;
     }
 
-    const imgRatio = exportCanvas.width / exportCanvas.height;
-    const canvRatio = PREVIEW_W / PREVIEW_H;
-
-    let dw, dh;
-    if (imgRatio > canvRatio) {
-      dw = PREVIEW_W;
-      dh = Math.round(PREVIEW_W / imgRatio);
-    } else {
-      dh = PREVIEW_H;
-      dw = Math.round(PREVIEW_H * imgRatio);
-    }
-
+    // Use 'contain' scaling so the entire image is visible and not cropped.
+    // Apply a small padding factor so the image doesn't touch container edges.
+    const srcW = exportCanvas.width || exportCanvas.clientWidth || 1;
+    const srcH = exportCanvas.height || exportCanvas.clientHeight || 1;
+    const paddingFactor = 0.95; // leave slight margin inside preview
+    let scale = Math.min(PREVIEW_W / srcW, PREVIEW_H / srcH);
+    // Prevent excessive upscaling on very small images; cap scale to 1 (no upscale)
+    scale = Math.min(scale, 1) * paddingFactor;
+    const dw = Math.round(srcW * scale);
+    const dh = Math.round(srcH * scale);
     const dx = Math.round((PREVIEW_W - dw) / 2);
     const dy = Math.round((PREVIEW_H - dh) / 2);
 
-    console.log('Drawing preview at', dx, dy, 'size', dw, 'x', dh);
-    ctx.drawImage(exportCanvas, 0, 0, exportCanvas.width, exportCanvas.height, dx, dy, dw, dh);
+    console.log('Drawing preview (contain) at', dx, dy, 'size', dw, 'x', dh, 'scale', scale.toFixed(2));
+    ctx.drawImage(exportCanvas, 0, 0, srcW, srcH, dx, dy, dw, dh);
 
     const endTime = performance.now();
     console.log('renderPreviewFromExport completed in', (endTime - startTime).toFixed(2), 'ms');
