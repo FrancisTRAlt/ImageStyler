@@ -91,9 +91,9 @@ const resetBtn = document.getElementById('resetBtn');
 const fontSizeValue = document.getElementById('fontSizeValue');
 const pixelSizeValue = document.getElementById('pixelSizeValue');
 const asciiColsInput = document.getElementById('asciiCols');
-const asciiText = document.getElementById('asciiText');
+let lastAsciiOutput = '';
 const copyAsciiBtn = document.getElementById('copyAsciiBtn');
-const clearAsciiBtn = document.getElementById('clearAsciiBtn');
+const previewAsciiBtn = document.getElementById('previewAsciiBtn');
 const undoBtn = document.getElementById('undoBtn');
 
 // ASCII character set: ordered from darkest to lightest
@@ -188,14 +188,103 @@ resetBtn.addEventListener('click', resetToOriginal);
 if (fontSizeInput) fontSizeInput.addEventListener('input', (e) => { if (fontSizeValue) fontSizeValue.textContent = e.target.value; });
 if (pixelSizeInput) pixelSizeInput.addEventListener('input', (e) => { if (pixelSizeValue) pixelSizeValue.textContent = e.target.value; });
 
-// ASCII Control: Copy to clipboard
+// ASCII Control: Copy the full ASCII output stored in `lastAsciiOutput`
 if (copyAsciiBtn) copyAsciiBtn.addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(asciiText.value || ''); alert('ASCII copied to clipboard'); }
+  try { await navigator.clipboard.writeText(lastAsciiOutput || ''); alert('ASCII copied to clipboard'); }
   catch (e) { console.error('Copy failed', e); alert('Copy failed: ' + e.message); }
 });
 
-// ASCII Control: Clear textarea
-if (clearAsciiBtn) clearAsciiBtn.addEventListener('click', () => { if (asciiText) asciiText.value = ''; });
+// ASCII preview modal handlers
+const asciiPreviewModal = document.getElementById('asciiPreviewModal');
+const asciiPreviewText = document.getElementById('asciiPreviewText');
+const asciiPreviewCopyBtn = document.getElementById('asciiPreviewCopyBtn');
+const asciiPreviewCloseBtn = document.getElementById('asciiPreviewCloseBtn');
+
+function showAsciiPreview() {
+  if (!asciiPreviewModal) return;
+  asciiPreviewText.textContent = lastAsciiOutput || 'No ASCII generated yet. Click Convert to generate.';
+  asciiPreviewModal.classList.remove('hidden');
+  asciiPreviewModal.setAttribute('aria-hidden', 'false');
+  setTimeout(() => {
+    asciiPreviewText.focus();
+    fitAsciiFont();
+  }, 50);
+}
+
+function closeAsciiPreview() {
+  if (!asciiPreviewModal) return;
+  asciiPreviewModal.classList.add('hidden');
+  asciiPreviewModal.setAttribute('aria-hidden', 'true');
+  previewAsciiBtn && previewAsciiBtn.focus();
+}
+
+// Adjust font-size of the ASCII preview to fit the modal while preserving aspect ratio
+function fitAsciiFont() {
+  if (!asciiPreviewText) return;
+  const text = lastAsciiOutput || '';
+  const lines = text.split('\n');
+  const rows = Math.max(1, lines.length);
+  let cols = 0;
+  for (let l of lines) if (l.length > cols) cols = l.length;
+
+  // If no content, reset to default
+  if (cols === 0 || rows === 0) {
+    asciiPreviewText.style.fontSize = '';
+    asciiPreviewText.style.lineHeight = '';
+    return;
+  }
+
+  // Measure monospace character metrics at a baseline font size
+  const baseline = 12; // px
+  const meas = document.createElement('span');
+  meas.style.fontFamily = getComputedStyle(asciiPreviewText).fontFamily || "'Courier New', monospace";
+  meas.style.fontSize = baseline + 'px';
+  meas.style.position = 'absolute';
+  meas.style.visibility = 'hidden';
+  meas.style.whiteSpace = 'nowrap';
+  meas.textContent = 'M';
+  document.body.appendChild(meas);
+  const charW = meas.getBoundingClientRect().width; // px at baseline
+  const charH = meas.getBoundingClientRect().height; // px at baseline
+  meas.remove();
+
+  if (charW <= 0 || charH <= 0) return;
+
+  const kW = charW / baseline; // width per font-size unit
+  const kH = charH / baseline; // height per font-size unit
+
+  // Available drawing area inside the pre element
+  const padX = parseFloat(getComputedStyle(asciiPreviewText).paddingLeft || 12) + parseFloat(getComputedStyle(asciiPreviewText).paddingRight || 12);
+  const padY = parseFloat(getComputedStyle(asciiPreviewText).paddingTop || 12) + parseFloat(getComputedStyle(asciiPreviewText).paddingBottom || 12);
+  const availW = Math.max(20, asciiPreviewText.clientWidth - padX);
+  const availH = Math.max(20, asciiPreviewText.clientHeight - padY);
+
+  // Compute font-size that fits cols and rows
+  const sizeW = availW / (cols * kW);
+  const sizeH = availH / (rows * kH);
+  let fontSize = Math.floor(Math.min(sizeW, sizeH));
+
+  // Clamp to sensible range
+  fontSize = Math.max(6, Math.min(28, fontSize));
+
+  asciiPreviewText.style.fontSize = fontSize + 'px';
+  asciiPreviewText.style.lineHeight = Math.max(1, (kH * fontSize) / (kW * fontSize)) + '';
+}
+
+// Refit on window resize while modal open
+window.addEventListener('resize', () => {
+  if (asciiPreviewModal && !asciiPreviewModal.classList.contains('hidden')) {
+    fitAsciiFont();
+  }
+});
+
+if (previewAsciiBtn) previewAsciiBtn.addEventListener('click', showAsciiPreview);
+if (asciiPreviewCopyBtn) asciiPreviewCopyBtn.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(lastAsciiOutput || ''); alert('ASCII copied to clipboard'); }
+  catch (e) { console.error('Copy failed', e); alert('Copy failed: ' + e.message); }
+});
+if (asciiPreviewCloseBtn) asciiPreviewCloseBtn.addEventListener('click', closeAsciiPreview);
+// Do not close ascii preview modal by clicking outside; require explicit Close action.
 
 // Undo button: restore previous conversion state
 if (undoBtn) undoBtn.addEventListener('click', () => {
@@ -271,10 +360,7 @@ if (downloadNowBtn) {
 
 if (downloadCancelBtn) downloadCancelBtn.addEventListener('click', closeDownloadDialog);
 
-if (downloadModal) {
-  // Close when clicking the overlay
-  downloadModal.addEventListener('click', (e) => { if (e.target === downloadModal) closeDownloadDialog(); });
-}
+// Do not close download modal by clicking outside; require explicit Cancel/Close.
 
 // Keyboard support: Enter to download, Esc to cancel
 document.addEventListener('keydown', (e) => {
@@ -891,6 +977,9 @@ function applyPaintEffects(canvas, smallData, smallW, smallH, pixelSize, opts) {
  */
 function convertToASCII(fontSize, cols) {
   cols = Number(cols) || 120;
+  // Ensure cols is even to avoid half-character columns
+  cols = Math.max(2, Math.round(cols));
+  if (cols % 2 !== 0) cols++;
 
   // Always read from original (pristine) canvas
   const srcCanvas = originalCanvas.width > 0 ? originalCanvas : exportCanvas;
@@ -901,7 +990,9 @@ function convertToASCII(fontSize, cols) {
 
   // Compute rows based on aspect ratio and a char aspect correction
   const charAspect = 0.5; // approximate character height/width ratio
-  const rows = Math.max(4, Math.round((cols * origHeight / origWidth) * charAspect));
+  let rows = Math.max(4, Math.round((cols * origHeight / origWidth) * charAspect));
+  // Ensure rows is even to keep character grid balanced
+  if (rows % 2 !== 0) rows++;
 
   const temp = document.createElement('canvas');
   temp.width = cols;
@@ -911,8 +1002,8 @@ function convertToASCII(fontSize, cols) {
   const imgd = tctx.getImageData(0, 0, cols, rows).data;
 
   // Calculate exact dimensions to avoid white borders on edges
-  const charW = Math.round(origWidth / cols);
-  const charH = Math.round(origHeight / rows);
+  const charW = Math.floor(origWidth / cols);
+  const charH = Math.floor(origHeight / rows);
 
   // Clear and prepare canvas
   exportCtx.clearRect(0, 0, origWidth, origHeight);
@@ -939,8 +1030,10 @@ function convertToASCII(fontSize, cols) {
     asciiOut += '\n';
   }
 
-  // Populate textarea for copy/paste
-  if (asciiText) asciiText.value = asciiOut;
+  // Store ASCII output for copying (textarea removed from UI)
+  lastAsciiOutput = asciiOut;
+  // Update input control to reflect adjusted columns (even)
+  if (asciiColsInput) asciiColsInput.value = cols;
 }
 // Animated ASCII conversion removed; static only.
 

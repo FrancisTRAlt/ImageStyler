@@ -66,10 +66,9 @@
               <input id="asciiCols" type="number" min="20" max="400" value="120" class="number-input">
 
               <label class="label-title">ASCII Output</label>
-              <textarea id="asciiText" class="ascii-text" rows="8" placeholder="ASCII art output..." readonly></textarea>
               <div class="ascii-actions">
+                <button id="previewAsciiBtn" class="btn">🔍 Preview</button>
                 <button id="copyAsciiBtn" class="btn">📋 Copy</button>
-                <button id="clearAsciiBtn" class="btn">🗑️ Clear</button>
               </div>
             </div>
           </div>
@@ -114,6 +113,18 @@
       <div class="modal-actions">
         <button id="downloadNowBtn" class="btn primary">Download Now</button>
         <button id="downloadCancelBtn" class="btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASCII Preview Modal -->
+  <div id="asciiPreviewModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="asciiPreviewTitle">
+    <div class="modal-content">
+      <h2 id="asciiPreviewTitle">ASCII Preview</h2>
+      <pre id="asciiPreviewText" class="ascii-preview" tabindex="0" aria-label="ASCII preview"></pre>
+      <div class="modal-actions">
+        <button id="asciiPreviewCopyBtn" class="btn">📋 Copy</button>
+        <button id="asciiPreviewCloseBtn" class="btn">Close</button>
       </div>
     </div>
   </div>
