@@ -5,6 +5,8 @@
 A Vibe Coded Web app that allows you to modify images of your choice.
 
 ## Technologies Used
+This is built in Vanilla HTML, CSS, and JS. Used GitHub Copilot CLI to create this application.
 
 ## Other information
-This project is built and submitted to the [GitHub Copilot CLI Challenge](https://dev.to/challenges/github-2026-01-21).
+- This project is built and submitted to the [GitHub Copilot CLI Challenge](https://dev.to/challenges/github-2026-01-21).
+- This is under the MIT License.
